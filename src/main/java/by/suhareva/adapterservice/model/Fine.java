@@ -1,5 +1,6 @@
 package by.suhareva.adapterservice.model;
 
+import by.suhareva.adapterservice.enums.ClientType;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -15,6 +16,7 @@ public class Fine {
     private UUID id;
     private String number;
     private Integer resolution_num;
+    private ClientType type;
     private Date resolution_date;
     private BigDecimal accrued;
     private  BigDecimal paid;
