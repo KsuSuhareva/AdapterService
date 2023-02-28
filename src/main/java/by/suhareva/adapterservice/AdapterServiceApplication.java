@@ -8,6 +8,7 @@ public class AdapterServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AdapterServiceApplication.class, args);
+
     }
 
 }
