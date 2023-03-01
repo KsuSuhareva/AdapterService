@@ -45,7 +45,8 @@ public class AdapterServiceImpl implements AdapterService {
         log.info("Request id={} send to SVEM for get response", uuid);
         Mono<GetResponse> getResponseMono = webClientBuilder.build()
                 .post()
-                .uri("/request/getResponse/" + uuid)
+                .uri("/request/getResponse/" )
+                .bodyValue(uuid)
                 .retrieve()
                 .bodyToMono(GetResponse.class)
                 .retryWhen(Retry.backoff(3, Duration.ofMillis(400)).jitter(0.75));
@@ -57,7 +58,8 @@ public class AdapterServiceImpl implements AdapterService {
         log.info("Response id={}  send to SVEM for delete", id);
         webClientBuilder.build()
                 .post()
-                .uri("/request/delete/" + id)
+                .uri("/request/delete/" )
+                .bodyValue(id)
                 .retrieve()
                 .bodyToMono(String.class)
                 .subscribe(log::info);
