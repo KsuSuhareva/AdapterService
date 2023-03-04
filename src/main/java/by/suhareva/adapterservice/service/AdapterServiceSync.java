@@ -7,8 +7,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-public interface AdapterService {
+public interface AdapterServiceSync {
     Mono<Fine> getFine(SendRequest fine);
+
+    Mono<UUID> saveRequest(SendRequest sendRequest);
 
     Mono<GetResponse> getResponseByIdRequest(UUID uuid);
 
