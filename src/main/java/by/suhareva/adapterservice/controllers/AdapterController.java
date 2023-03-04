@@ -2,8 +2,12 @@ package by.suhareva.adapterservice.controllers;
 
 import by.suhareva.adapterservice.model.Fine;
 import by.suhareva.adapterservice.model.SendRequest;
-import by.suhareva.adapterservice.service.AdapterService;
+import by.suhareva.adapterservice.service.AdapterServiceAsync;
+import by.suhareva.adapterservice.service.AdapterServiceSync;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,13 +19,25 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/adapter/")
+
 public class AdapterController {
 
-    private final AdapterService service;
+    private final AdapterServiceSync serviceSync;
+    private final AdapterServiceAsync serviceAsync;
 
-    @PostMapping("request")
-    public Mono<Fine> getFine(@Valid @RequestBody SendRequest request) {
-        Mono getResponseMono = service.getFine(request);
-        return getResponseMono;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @PostMapping("getFineRestTemplate")
+    public ResponseEntity<Fine> getFineRT(@Valid @RequestBody SendRequest request) {
+        Fine fine = serviceAsync.getFine(request);
+        return new ResponseEntity<>(fine, HttpStatus.OK);
     }
+
+
+    @PostMapping("getFineWebClient")
+    public ResponseEntity<Mono<Fine>> getFine(@Valid @RequestBody SendRequest request) {
+        Mono getResponseMono = serviceSync.getFine(request);
+        return new ResponseEntity<>(getResponseMono, HttpStatus.OK);
+    }
+
+
 }
