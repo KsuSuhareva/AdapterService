@@ -49,7 +49,7 @@ public class AdapterServiceWebClientImpl implements AdapterServiceSync {
                 .bodyValue(uuid)
                 .retrieve()
                 .bodyToMono(GetResponse.class)
-                .retryWhen(Retry.backoff(3, Duration.ofMillis(2000)).jitter(0.75));
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(200)).jitter(0.75));
     }
 
     @Override
