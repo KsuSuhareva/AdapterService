@@ -1,10 +1,12 @@
 package by.suhareva.adapterservice.model;
 
 import by.suhareva.adapterservice.enums.ClientType;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.UUID;
 
 @Getter
@@ -12,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@XmlRootElement( name = "SendRequest")
 public class SendRequest {
 
     private UUID uuid = null;

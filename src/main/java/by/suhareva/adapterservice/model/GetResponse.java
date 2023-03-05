@@ -3,8 +3,10 @@ package by.suhareva.adapterservice.model;
 
 import by.suhareva.adapterservice.enums.ClientType;
 import by.suhareva.adapterservice.exceptions.FineNotFoundException;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.*;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@XmlRootElement(name = "GetResponse")
 public class GetResponse {
     private UUID uuid;
     private UUID uuid_request;
