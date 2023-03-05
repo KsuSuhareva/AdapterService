@@ -17,7 +17,8 @@ public class RestTemplateConfiguration {
         UriTemplateHandler uri = new RootUriTemplateHandler(baseUrl);
         return builder
                 .uriTemplateHandler(uri)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE,
+                        MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
