@@ -17,9 +17,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AdapterServiceRestTemplate implements AdapterServiceAsync {
-    @Autowired
+
     private final RestTemplate restTemplate;
-    @Autowired
     private final RetryTemplate retry;
 
     @Override
