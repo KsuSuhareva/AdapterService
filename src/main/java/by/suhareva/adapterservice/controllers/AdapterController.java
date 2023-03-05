@@ -19,13 +19,13 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/adapter/")
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdapterController {
 
     private final AdapterServiceSync serviceSync;
     private final AdapterServiceAsync serviceAsync;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+
     @PostMapping("getFineRestTemplate")
     public ResponseEntity<Fine> getFineRT(@Valid @RequestBody SendRequest request) {
         Fine fine = serviceAsync.getFine(request);
@@ -35,7 +35,7 @@ public class AdapterController {
 
     @PostMapping("getFineWebClient")
     public ResponseEntity<Mono<Fine>> getFine(@Valid @RequestBody SendRequest request) {
-        Mono getResponseMono = serviceSync.getFine(request);
+        Mono<Fine> getResponseMono = serviceSync.getFine(request);
         return new ResponseEntity<>(getResponseMono, HttpStatus.OK);
     }
 
