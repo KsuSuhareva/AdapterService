@@ -84,8 +84,8 @@ public class RestTemplateTest extends IntegrationTest {
         Fine fine = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
                 Fine.class);
-        assertEquals(request.getNumber(),fine.getNumber());
-        assertEquals(request.getType(),fine.getType());
+        assertEquals(request.getNumber(), fine.getNumber());
+        assertEquals(request.getType(), fine.getType());
     }
 
 
@@ -127,8 +127,8 @@ public class RestTemplateTest extends IntegrationTest {
         Fine fine = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
                 Fine.class);
-        assertEquals(request.getNumber(),fine.getNumber());
-        assertEquals(request.getType(),fine.getType());
+        assertEquals(request.getNumber(), fine.getNumber());
+        assertEquals(request.getType(), fine.getType());
     }
 
     @Test
@@ -142,7 +142,6 @@ public class RestTemplateTest extends IntegrationTest {
                 .andDo(print())
                 .andReturn();
     }
-
 
 }
 
