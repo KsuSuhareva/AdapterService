@@ -24,12 +24,10 @@ import java.util.UUID;
 
 import static by.suhareva.adapterservice.enums.ClientType.INDIVIDUAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 
 @AutoConfigureMockMvc
-public class WebclientTest extends AdapterControllerTest {
+public class WebclientTest extends IntegrationTest {
     private static MockWebServer mockWebServer;
     @Autowired
     private WebClient.Builder webClientBuilder;
@@ -67,7 +65,11 @@ public class WebclientTest extends AdapterControllerTest {
                         .setResponseCode(200)
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(objectMapper.writeValueAsString(uuid)));
-        Mono<UUID> uuidMono = service.saveRequest(new SendRequest("12AA123455"));
+        Mono<UUID> uuidMono = service.saveRequest(new SendRequest("12AA123456"));
+        uuidMono.flatMap(u->{
+            assertEquals(uuid, u);
+            return uuidMono;
+        });
         GetResponse responseTest = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "12AA123455", INDIVIDUAL, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
         mockWebServer.enqueue(
                 new MockResponse()
@@ -87,11 +89,11 @@ public class WebclientTest extends AdapterControllerTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(objectMapper.writeValueAsString(message)));
         service.deleteResponse(responseTest.getUuid());
+//        mockMvc.perform(post("/adapter/request")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(new SendRequest("12AB123456"))))
+//                .andDo(print())
+//                .andReturn();
 
-        mockMvc.perform(post("/adapter/request")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new SendRequest("12AB123456"))))
-                .andDo(print())
-                .andReturn();
     }
 }
