@@ -1,4 +1,5 @@
 package by.suhareva.adapterservice.controllers;
+
 import by.suhareva.adapterservice.exceptions.ErrorMassage;
 import by.suhareva.adapterservice.exceptions.FineNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -19,6 +21,7 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class ClientExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorMassage> catchMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error("Catch exception  MethodArgumentNotValidException {}", e.getMessage());
         HttpStatus status = BAD_REQUEST;
@@ -31,6 +34,7 @@ public class ClientExceptionHandler {
     }
 
     @ExceptionHandler(WebClientResponseException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorMassage> catchFineNotFoundException(WebClientException e) {
         log.error("Catch exception  WebClientResponseException with cause:{} ", e.getMessage());
         HttpStatus status = INTERNAL_SERVER_ERROR;
@@ -43,8 +47,9 @@ public class ClientExceptionHandler {
     }
 
     @ExceptionHandler(FineNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorMassage> catchFineNotFoundException(FineNotFoundException e) {
-        log.error("Catch exception  FineNotFoundException with cause:{}", e.getMessage() );
+        log.error("Catch exception  FineNotFoundException with cause:{}", e.getMessage());
         HttpStatus status = NOT_FOUND;
         ErrorMassage errorMassage = ErrorMassage.builder()
                 .date(new Date())
@@ -55,6 +60,7 @@ public class ClientExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorMassage> catchAnyException(Exception e) {
         log.error("Catch exception  Exception with cause:{} ", e.getMessage());
         HttpStatus status = INTERNAL_SERVER_ERROR;
