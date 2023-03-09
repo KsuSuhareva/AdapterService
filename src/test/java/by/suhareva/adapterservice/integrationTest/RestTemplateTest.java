@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,6 +49,7 @@ public class RestTemplateTest extends IntegrationTest {
 
     private MockRestServiceServer mockServer;
 
+
     @BeforeEach
     public void createMock() {
         mockServer = MockRestServiceServer.createServer(restTemplate);
@@ -62,20 +64,20 @@ public class RestTemplateTest extends IntegrationTest {
     public void getFineWithValidDateForIndividual() throws Exception {
         SendRequest request = new SendRequest(null, "12AA123456", INDIVIDUAL);
         UUID uuid = UUID.randomUUID();
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/save/"))
+        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
                 .andRespond(withStatus(HttpStatus.ACCEPTED)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(uuid)));
         GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "12AA123456", INDIVIDUAL, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/getResponse/"))
+        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
                 .andRespond(withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(response)));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/delete/"))
+        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
                 .andRespond(withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString("Response " + response.getUuid() + "deleted")));
-        MvcResult mvcResult = mockMvc.perform(post("/adapter/getFineRestTemplate")
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.OK.value()))
