@@ -1,14 +1,15 @@
 package by.suhareva.adapterservice.integrationTest;
 
+import by.suhareva.adapterservice.integrationTest.MaperXml.MapperXml;
 import by.suhareva.adapterservice.model.Fine;
 import by.suhareva.adapterservice.model.GetResponse;
 import by.suhareva.adapterservice.model.SendRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
@@ -46,10 +48,14 @@ public class RestTamplateXmlTest extends IntegrationTest {
 
     private MockRestServiceServer mockServer;
 
+    public RestTamplateXmlTest() {
+    }
+
     @BeforeEach
     public void createMock() {
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
+
 
     @AfterEach
     public void verifyMock() {
@@ -62,31 +68,31 @@ public class RestTamplateXmlTest extends IntegrationTest {
         request.setNumber("12AA123456");
         request.setType(INDIVIDUAL);
         UUID uuid = UUID.randomUUID();
-
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/save/"))
+        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
                 .andRespond(withStatus(HttpStatus.ACCEPTED)
-                        .contentType(MediaType.TEXT_XML)
+                        .contentType(MediaType.APPLICATION_XML)
                         .body(mapperXml.writeValueAsString(uuid)));
+
         GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "12AA123456", INDIVIDUAL, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/getResponse/"))
+        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.TEXT_XML)
-                        .body(mapperXml.writeValueAsString(response)));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/delete/"))
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(MapperXml.writeValueAsString(response)));
+
+        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.TEXT_XML)
+                        .contentType(MediaType.APPLICATION_XML)
                         .body(mapperXml.writeValueAsString("Response " + response.getUuid() + "deleted")));
-        MvcResult mvcResult = mockMvc.perform(post("/adapter/getFineRestTemplate")
+
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
                         .accept(MediaType.TEXT_XML_VALUE)
-                        .contentType(MediaType.TEXT_XML_VALUE)
-                        .content(mapperXml.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXml.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(content().contentType("text/xml;charset=UTF-8"))
                 .andDo(print())
                 .andReturn();
-        Fine fine = mapperXml.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                Fine.class);
+        Fine fine = MapperXml.readValueAsString(new StringReader(mvcResult.getResponse().getContentAsString()), Fine.class);
         assertEquals(request.getNumber(), fine.getNumber());
         assertEquals(request.getType(), fine.getType());
     }
@@ -98,29 +104,32 @@ public class RestTamplateXmlTest extends IntegrationTest {
         request.setType(LEGAL_ENTITY);
         UUID uuid = UUID.randomUUID();
 
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/save/"))
+        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
                 .andRespond(withStatus(HttpStatus.ACCEPTED)
-                        .contentType(MediaType.TEXT_XML)
+                        .contentType(MediaType.APPLICATION_XML)
                         .body(mapperXml.writeValueAsString(uuid)));
+        System.out.println(mapperXml.writeValueAsString(uuid));
         GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "1234567890", LEGAL_ENTITY, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/getResponse/"))
+        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.TEXT_XML)
+                        .contentType(MediaType.APPLICATION_XML)
                         .body(mapperXml.writeValueAsString(response)));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/delete/"))
+
+        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.TEXT_XML)
+                        .contentType(MediaType.APPLICATION_XML)
                         .body(mapperXml.writeValueAsString("Response " + response.getUuid() + "deleted")));
-        MvcResult mvcResult = mockMvc.perform(post("/adapter/getFineRestTemplate")
+
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
                         .accept(MediaType.TEXT_XML_VALUE)
-                        .contentType(MediaType.TEXT_XML_VALUE)
-                        .content(mapperXml.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXml.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(content().contentType("text/xml;charset=UTF-8"))
                 .andDo(print())
                 .andReturn();
-        Fine fine = mapperXml.readValue(
-                mvcResult.getResponse().getContentAsString(),
+
+        Fine fine = MapperXml.readValueAsString(new StringReader(mvcResult.getResponse().getContentAsString()),
                 Fine.class);
         assertEquals(request.getNumber(), fine.getNumber());
         assertEquals(request.getType(), fine.getType());
