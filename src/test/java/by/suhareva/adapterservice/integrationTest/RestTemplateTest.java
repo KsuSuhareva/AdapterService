@@ -94,7 +94,7 @@ public class RestTemplateTest extends IntegrationTest {
     @Test
     public void getFineWithInValidDateForIndividual() throws Exception {
         SendRequest request = new SendRequest(null, "12AA123", INDIVIDUAL);
-        mockMvc.perform(post("/adapter/getFineRestTemplate")
+        mockMvc.perform(post(FINE_GET_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
@@ -107,20 +107,20 @@ public class RestTemplateTest extends IntegrationTest {
     public void getFineWithValidDateForLegalEntity() throws Exception {
         SendRequest request = new SendRequest(null, "1234567890", LEGAL_ENTITY);
         UUID uuid = UUID.randomUUID();
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/save/"))
+        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
                 .andRespond(withStatus(HttpStatus.ACCEPTED)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(uuid)));
         GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "1234567890", LEGAL_ENTITY, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/getResponse/"))
+        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
                 .andRespond(withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(response)));
-        mockServer.expect(once(), requestTo("http://localhost:8091/request/delete/"))
+        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
                 .andRespond(withStatus(HttpStatus.OK)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString("Response " + response.getUuid() + "deleted")));
-        MvcResult mvcResult = mockMvc.perform(post("/adapter/getFineRestTemplate")
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -136,7 +136,7 @@ public class RestTemplateTest extends IntegrationTest {
     @Test
     public void getFineWithInValidDateForLegalEntity() throws Exception {
         SendRequest request = new SendRequest(null, "12hfhf123", INDIVIDUAL);
-        mockMvc.perform(post("/adapter/getFineRestTemplate")
+        mockMvc.perform(post(FINE_GET_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
