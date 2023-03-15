@@ -39,5 +39,4 @@ public class AdapterController {
         return new ResponseEntity<>(getResponseMono, HttpStatus.OK);
     }
 
-
 }
