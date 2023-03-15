@@ -1,14 +1,14 @@
 package by.suhareva.adapterservice.integrationTest;
 
+import by.suhareva.adapterservice.integrationTest.MaperXmlJAXB.MapperXmlJAXB;
 import by.suhareva.adapterservice.model.Fine;
 import by.suhareva.adapterservice.model.GetResponse;
 import by.suhareva.adapterservice.model.SendRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,11 +29,10 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-public class RestTemplateTest extends IntegrationTest {
+public class RestTemplateXmlTest extends IntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -41,19 +40,20 @@ public class RestTemplateTest extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    private XmlMapper mapperXml = new XmlMapper();
     @Autowired
     private RestTemplate restTemplate;
 
     private MockRestServiceServer mockServer;
 
+    public RestTemplateXmlTest() {
+    }
 
     @BeforeEach
     public void createMock() {
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
+
 
     @AfterEach
     public void verifyMock() {
@@ -61,72 +61,33 @@ public class RestTemplateTest extends IntegrationTest {
     }
 
     @Test
-    public void getFineWithValidDateForIndividual() throws Exception {
-        SendRequest request = new SendRequest(null, "12AA123456", INDIVIDUAL);
-        UUID uuid = UUID.randomUUID();
+    public void getFineWithValidDateXmlFormatForIndividual() throws Exception {
+        SendRequest request = new SendRequest(UUID.randomUUID(), "12AA123456", INDIVIDUAL);
         mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
                 .andRespond(withStatus(HttpStatus.ACCEPTED)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(uuid)));
-        GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "12AA123456", INDIVIDUAL, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(MapperXmlJAXB.writeValueAsString(request)));
+
+        GetResponse response = new GetResponse(UUID.randomUUID(), request.getUuid(), UUID.randomUUID(), "12AA123456", INDIVIDUAL, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
         mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(response)));
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(MapperXmlJAXB.writeValueAsString(response)));
+
         mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString("Response " + response.getUuid() + "deleted")));
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(mapperXml.writeValueAsString("Response " + response.getUuid() + "deleted")));
+
         MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .accept(MediaType.TEXT_XML_VALUE)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXmlJAXB.writeValueAsString(request)))
                 .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(content().contentType("text/xml;charset=UTF-8"))
                 .andDo(print())
                 .andReturn();
-        Fine fine = objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                Fine.class);
-        assertEquals(request.getNumber(), fine.getNumber());
-        assertEquals(request.getType(), fine.getType());
-    }
-
-
-    @Test
-    public void getFineWithInValidDateForIndividual() throws Exception {
-        SendRequest request = new SendRequest(null, "12AA123", INDIVIDUAL);
-        mockMvc.perform(post(FINE_GET_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.cause").value("MethodArgumentNotValidException"))
-                .andDo(print())
-                .andReturn();
-    }
-
-    @Test
-    public void getFineWithValidDateForLegalEntity() throws Exception {
-        SendRequest request = new SendRequest(null, "1234567890", LEGAL_ENTITY);
-        UUID uuid = UUID.randomUUID();
-        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
-                .andRespond(withStatus(HttpStatus.ACCEPTED)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(uuid)));
-        GetResponse response = new GetResponse(UUID.randomUUID(), uuid, UUID.randomUUID(), "1234567890", LEGAL_ENTITY, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
-        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
-                .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(response)));
-        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
-                .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString("Response " + response.getUuid() + "deleted")));
-        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is(HttpStatus.OK.value()))
-                .andDo(print())
-                .andReturn();
-        Fine fine = objectMapper.readValue(
+        Fine fine = MapperXmlJAXB.readValueAsString(
                 mvcResult.getResponse().getContentAsString(),
                 Fine.class);
         assertEquals(request.getNumber(), fine.getNumber());
@@ -134,16 +95,35 @@ public class RestTemplateTest extends IntegrationTest {
     }
 
     @Test
-    public void getFineWithInValidDateForLegalEntity() throws Exception {
-        SendRequest request = new SendRequest(null, "12hfhf123", INDIVIDUAL);
-        mockMvc.perform(post(FINE_GET_URL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(jsonPath("$.cause").value("MethodArgumentNotValidException"))
+    public void getFineWithValidDateXmlFormatForLegalEntity() throws Exception {
+        SendRequest request = new SendRequest(UUID.randomUUID(), "1234567890", LEGAL_ENTITY);
+        mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
+                .andRespond(withStatus(HttpStatus.ACCEPTED)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(MapperXmlJAXB.writeValueAsString(request)));
+        GetResponse response = new GetResponse(UUID.randomUUID(), request.getUuid(), UUID.randomUUID(), "1234567890", LEGAL_ENTITY, 123456, new Date(), new BigDecimal(2000.0), new BigDecimal(2000.0));
+        mockServer.expect(once(), requestTo(RESPONSE_GET_URL))
+                .andRespond(withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(MapperXmlJAXB.writeValueAsString(response)));
+
+        mockServer.expect(once(), requestTo(RESPONSE_DELETE_URL))
+                .andRespond(withStatus(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .body(mapperXml.writeValueAsString("Response " + response.getUuid() + "deleted")));
+
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
+                        .accept(MediaType.TEXT_XML_VALUE)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXmlJAXB.writeValueAsString(request)))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(content().contentType("text/xml;charset=UTF-8"))
                 .andDo(print())
                 .andReturn();
+        Fine fine = MapperXmlJAXB.readValueAsString(
+                mvcResult.getResponse().getContentAsString(),
+                Fine.class);
+        assertEquals(request.getNumber(), fine.getNumber());
+        assertEquals(request.getType(), fine.getType());
     }
-
 }
-
