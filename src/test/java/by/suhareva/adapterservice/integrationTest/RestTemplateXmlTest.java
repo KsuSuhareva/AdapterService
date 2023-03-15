@@ -1,5 +1,6 @@
 package by.suhareva.adapterservice.integrationTest;
 
+import by.suhareva.adapterservice.exceptions.ErrorMassage;
 import by.suhareva.adapterservice.integrationTest.MaperXmlJAXB.MapperXmlJAXB;
 import by.suhareva.adapterservice.model.Fine;
 import by.suhareva.adapterservice.model.GetResponse;
@@ -95,6 +96,23 @@ public class RestTemplateXmlTest extends IntegrationTest {
     }
 
     @Test
+    public void getFineWithInValidDateForIndividual() throws Exception {
+        SendRequest request = new SendRequest(null, "12AA123", INDIVIDUAL);
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
+                        .accept(MediaType.TEXT_XML_VALUE)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXmlJAXB.writeValueAsString(request)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+                .andDo(print())
+                .andReturn();
+        ErrorMassage massageError = MapperXmlJAXB.readValueAsString(
+                mvcResult.getResponse().getContentAsString(),
+                ErrorMassage.class);
+        System.out.println(massageError);
+        assertEquals("MethodArgumentNotValidException", massageError.getCause());
+    }
+
+    @Test
     public void getFineWithValidDateXmlFormatForLegalEntity() throws Exception {
         SendRequest request = new SendRequest(UUID.randomUUID(), "1234567890", LEGAL_ENTITY);
         mockServer.expect(once(), requestTo(REQUEST_SAVE_URL))
@@ -125,5 +143,22 @@ public class RestTemplateXmlTest extends IntegrationTest {
                 Fine.class);
         assertEquals(request.getNumber(), fine.getNumber());
         assertEquals(request.getType(), fine.getType());
+    }
+
+    @Test
+    public void getFineWithInValidDateForLegalEntity() throws Exception {
+        SendRequest request = new SendRequest(null, "12AA123", LEGAL_ENTITY);
+        MvcResult mvcResult = mockMvc.perform(post(FINE_GET_URL)
+                        .accept(MediaType.TEXT_XML_VALUE)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content(MapperXmlJAXB.writeValueAsString(request)))
+                .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
+                .andDo(print())
+                .andReturn();
+        ErrorMassage massageError = MapperXmlJAXB.readValueAsString(
+                mvcResult.getResponse().getContentAsString(),
+                ErrorMassage.class);
+        System.out.println(massageError);
+        assertEquals("MethodArgumentNotValidException", massageError.getCause());
     }
 }
