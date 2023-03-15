@@ -1,7 +1,6 @@
 package by.suhareva.adapterservice.model;
 
 import by.suhareva.adapterservice.enums.ClientType;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.*;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -14,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString
-@XmlRootElement(name  = "Fine")
+@XmlRootElement(name = "Fine")
 public class Fine {
     private UUID id;
     private String number;
@@ -22,5 +21,5 @@ public class Fine {
     private ClientType type;
     private Date resolution_date;
     private BigDecimal accrued;
-    private  BigDecimal paid;
+    private BigDecimal paid;
 }
