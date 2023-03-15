@@ -6,46 +6,43 @@ import by.suhareva.adapterservice.model.SendRequest;
 import by.suhareva.adapterservice.service.AdapterServiceAsync;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.UUID;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AdapterServiceRestTemplate implements AdapterServiceAsync {
+public class AdapterServiceRestTemplateImpl implements AdapterServiceAsync {
 
     private final RestTemplate restTemplate;
     private final RetryTemplate retry;
 
     @Override
     public Fine getFine(SendRequest sendRequest) {
-        UUID uuidRequest = saveRequest(sendRequest);
-        GetResponse response = getResponseByIdRequest(uuidRequest);
+        SendRequest request = saveRequest(sendRequest);
+        GetResponse response = getResponseByIdRequest(request);
         Fine fine = response.getFine(sendRequest.getNumber());
-        deleteResponse(response.getUuid());
+        deleteResponse(response);
         return fine;
     }
 
     @Override
-    public UUID saveRequest(SendRequest sendRequest) {
+    public SendRequest saveRequest(SendRequest sendRequest) {
         log.info("Request {} send to save to SVEM ", sendRequest);
-        return restTemplate.postForObject("/request/save/", sendRequest, UUID.class);
+        return restTemplate.postForObject("/request/save", sendRequest, SendRequest.class);
     }
 
     @Override
-    public GetResponse getResponseByIdRequest(UUID uuid) {
-        log.info("Request id={} send to SVEM for get response", uuid);
-        return retry.execute(r -> restTemplate.postForObject("/request/getResponse/", uuid, GetResponse.class));
+    public GetResponse getResponseByIdRequest(SendRequest sendRequest) {
+        log.info("Request id={} send to SVEM for get response", sendRequest.getUuid());
+        return retry.execute(r -> restTemplate.postForObject("/request/getResponse", sendRequest, GetResponse.class));
     }
 
     @Override
-    public void deleteResponse(UUID id) {
-        log.info("Response id={}  send to SVEM for delete", id);
-        restTemplate.postForObject("/request/delete/", id, String.class);
+    public void deleteResponse(GetResponse response) {
+        log.info("Response id={}  send to SVEM for delete", response.getUuid());
+        restTemplate.postForObject("/request/delete", response, String.class);
     }
 
 }

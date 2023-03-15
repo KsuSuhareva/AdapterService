@@ -22,43 +22,43 @@ public class AdapterServiceWebClientImpl implements AdapterServiceSync {
     private final WebClient.Builder webClientBuilder;
 
     public Mono<Fine> getFine(SendRequest sendRequest) {
-        Mono<UUID> uuidRequest = saveRequest(sendRequest);
-        Mono<GetResponse> response = uuidRequest.flatMap(this::getResponseByIdRequest);
+        Mono<SendRequest> request = saveRequest(sendRequest);
+        Mono<GetResponse> response = request.flatMap(this::getResponseByIdRequest);
         Mono<Fine> fineMono = response.map(r -> r.getFine(sendRequest.getNumber()));
-        response.subscribe(r -> deleteResponse(r.getUuid()));
+        response.subscribe(this::deleteResponse);
         return fineMono;
     }
     @Override
-    public Mono<UUID> saveRequest(SendRequest sendRequest) {
+    public Mono<SendRequest> saveRequest(SendRequest sendRequest) {
         log.info("Request {} send to save to SVEM ", sendRequest);
         return webClientBuilder.build()
                 .post()
-                .uri("/request/save/")
+                .uri("/request/save")
                 .bodyValue(sendRequest)
                 .retrieve()
-                .bodyToMono(UUID.class)
+                .bodyToMono(SendRequest.class)
                 .cache();
     }
 
     @Override
-    public Mono<GetResponse> getResponseByIdRequest(UUID uuid) {
-        log.info("Request id={} send to SVEM for get response", uuid);
+    public Mono<GetResponse> getResponseByIdRequest(SendRequest request) {
+        log.info("Request id={} send to SVEM for get response", request.getUuid());
         return webClientBuilder.build()
                 .post()
-                .uri("/request/getResponse/")
-                .bodyValue(uuid)
+                .uri("/request/getResponse")
+                .bodyValue(request)
                 .retrieve()
                 .bodyToMono(GetResponse.class)
                 .retryWhen(Retry.backoff(3, Duration.ofMillis(200)).jitter(0.75));
     }
 
     @Override
-    public void deleteResponse(UUID id) {
-        log.info("Response id={}  send to SVEM for delete", id);
+    public void deleteResponse(GetResponse response) {
+        log.info("Response id={}  send to SVEM for delete", response.getUuid());
         webClientBuilder.build()
                 .post()
-                .uri("/request/delete/")
-                .bodyValue(id)
+                .uri("/request/delete")
+                .bodyValue(response)
                 .retrieve()
                 .bodyToMono(String.class)
                 .subscribe(log::info);

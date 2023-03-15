@@ -10,11 +10,11 @@ import java.util.UUID;
 public interface AdapterServiceSync {
     Mono<Fine> getFine(SendRequest fine);
 
-    Mono<UUID> saveRequest(SendRequest sendRequest);
+    Mono<SendRequest> saveRequest(SendRequest sendRequest);
 
-    Mono<GetResponse> getResponseByIdRequest(UUID uuid);
+    Mono<GetResponse> getResponseByIdRequest(SendRequest response);
 
-    void deleteResponse(UUID id);
+    void deleteResponse(GetResponse response);
 
 
 }
